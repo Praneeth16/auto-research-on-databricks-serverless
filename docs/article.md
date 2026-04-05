@@ -50,19 +50,28 @@ The other piece that simplifies auto-research on Databricks: the agent LLM. The 
 ### Architecture
 
 ```
-Databricks Notebook (GPU cluster, g5.xlarge)
-  |
-  +-- [Experiment loop]
-  |     1. Agent LLM (Llama 3.3 70B via FM API) proposes a config change
-  |     2. LoRA training runs for 5 min on the same GPU
-  |     3. Evaluate val_loss on held-out financial text
-  |     4. Keep or revert
-  |     5. Log to results TSV
-  |     6. Repeat
-  |
-  +-- Data: UC Volumes (/Volumes/main/auto_research/autoresearch/)
-  +-- Model: Qwen 2.5-3B with QLoRA (4-bit quantization)
-  +-- Adapters: ~30MB per experiment, saved to UC Volumes
+┌─────────────────────────────────────────────────────────┐
+│  Databricks Workspace                                   │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Serverless GPU Cluster (g5.xlarge / A10G)      │    │
+│  │                                                  │    │
+│  │  Notebook: Auto-Research Loop                    │    │
+│  │    1. Call agent ──► Foundation Model API         │    │
+│  │    2. Agent returns modified train.py  (GPT 5.4) │    │
+│  │    3. Run training (5 min)                       │    │
+│  │    4. Measure val_loss                           │    │
+│  │    5. Keep or revert                             │    │
+│  │    6. Repeat                                     │    │
+│  └──────────────┬──────────────────────────────────┘    │
+│                  │                                       │
+│  ┌───────────────▼───────────────────────────────┐      │
+│  │  Unity Catalog Volumes                        │      │
+│  │  - Training data (50K instruction examples)   │      │
+│  │  - LoRA adapters (~30MB each)                 │      │
+│  │  - Results TSV + experiment history           │      │
+│  └───────────────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────────┘
 ```
 
 Everything runs on a single Databricks notebook attached to one serverless GPU cluster. No Docker containers, no Kubernetes, no CUDA installation. The agent LLM (Llama 3.3 70B Instruct) runs via Databricks Foundation Model API, so there's no second GPU needed for the agent. The training data, adapters, and results all live in Unity Catalog Volumes. If you have a Databricks workspace with GPU access, you can reproduce this setup in under 10 minutes.
@@ -313,14 +322,14 @@ The honest conclusion: a 3B model with LoRA can't match Sonnet 4.6 on financial 
 
 ## Try it yourself
 
-The full code is on GitHub: [link to repo]
+The full code is on GitHub: [Praneeth16/auto-research-on-databricks-serverless](https://github.com/Praneeth16/auto-research-on-databricks-serverless)
 
 To run it on your own Databricks workspace:
 
 1. Create a GPU cluster (g5.xlarge, DBR 15.4 ML) with an init script that installs `peft trl bitsandbytes accelerate datasets`
 2. Upload your dataset to UC Volumes using `prepare.py`
-3. Start with `05_auto_research_loop` (config tuning) to establish a baseline
-4. Graduate to `07_auto_research_v3` (full code editing) for deeper optimization
+3. Start with `notebooks/03_auto_research_v1.py` (config tuning) to establish a baseline
+4. Graduate to `notebooks/05_auto_research_v3.py` (full code editing) for deeper optimization
 
 To adapt for your own domain:
 - Replace the financial datasets in `prepare.py` with your domain data

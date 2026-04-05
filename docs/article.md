@@ -1,12 +1,12 @@
 # Autonomous LoRA Fine-Tuning on Databricks: Running Karpathy's Auto-Research on Financial Text
 
-*I gave a GPT 5.4 agent full access to edit a LoRA training script and let it run 54 experiments on Databricks serverless GPUs. It cut val_loss by 9.2%, discovered that adding MLP adapters matters more than tuning learning rates, and taught me that the metric you optimize is the metric you improve. Here's the full story across three iterations.*
+*54 experiments, 3 iterations, $30 in compute. The agent discovered that MLP adapters matter more than learning rates.*
 
 ## The problem with fine-tuning
 
 Every ML team I've talked to has the same complaint about fine-tuning: it's not the training that kills you, it's the iteration. You pick a learning rate, wait 20 minutes, check the loss, adjust, wait again. A senior engineer can burn an entire day running 8-10 experiments manually. Most of those experiments are variations on the same theme: "what if I made the learning rate a bit smaller?"
 
-Andrej Karpathy published [auto-research](https://github.com/karpathy/autoresearch) in early 2025 to address exactly this. The idea is simple: give an LLM agent access to your training script, let it propose one change at a time, run each experiment for a fixed time budget, keep improvements, revert failures. No human in the loop. The agent runs 100+ experiments while you sleep.
+Andrej Karpathy published [auto-research](https://github.com/karpathy/autoresearch) in early 2025 to address this. Give an LLM agent access to your training script. Let it propose one change at a time. Run each experiment for a fixed time budget. Keep improvements, revert failures. No human in the loop.
 
 The original runs on H100s. I wanted to try something different: run it on Databricks serverless GPUs, on a real dataset, with a practical goal.
 
@@ -27,13 +27,9 @@ The original auto-research trains a small GPT from scratch and measures bits-per
 
 ## Why financial sentiment, and why a small model?
 
-Three reasons.
+Financial text uses specialized vocabulary (EBITDA, diluted EPS, Form 10-K) that general-purpose models handle inconsistently. Classifying "Revenue exceeded analyst expectations by 12%" as positive sounds trivial, but the nuance in real filings trips up even frontier models.
 
-**Financial text is structurally different.** SEC filings, earnings calls, and financial news use specialized vocabulary (EBITDA, diluted EPS, Form 10-K) and follow patterns that general-purpose models handle poorly. A model that can classify "The company's revenue exceeded analyst expectations by 12%" as positive sounds trivial, but frontier models get this wrong more often than you'd expect when the language gets more nuanced.
-
-**Cost at scale matters.** If you're classifying 100K financial documents per day, paying $0.003 per API call to a frontier model adds up to $300/day. A small model running on a single GPU costs a fraction of that. The question is whether the accuracy trade-off is acceptable.
-
-**Databricks customers already have GPUs.** If you're on Databricks, you have access to GPU clusters. The question is whether you're using them for training or just inference. Most teams I've seen leave GPU capacity on the table because fine-tuning feels like too much operational overhead. Auto-research changes that calculus.
+At the same time, calling a frontier model API at $0.003 per request gets expensive at 100K documents per day. A small model on a single GPU is cheaper by an order of magnitude if the accuracy holds up. Most Databricks customers already have GPU clusters sitting there. The question is whether fine-tuning is worth the setup cost. Auto-research makes it nearly zero.
 
 ## Why Databricks Serverless GPUs make this practical
 
@@ -41,9 +37,9 @@ The first time I tried to run LoRA fine-tuning on a cloud VM, I spent four hours
 
 Databricks GPU ML Runtimes (15.4.x-gpu-ml in our case) solved this. The runtime ships with CUDA, cuDNN, PyTorch, and transformers pre-installed and tested together. When I attached a g5.xlarge cluster (NVIDIA A10G, 24GB VRAM), `torch.cuda.is_available()` returned True on the first try. The only packages I needed to add were `peft`, `trl`, and `bitsandbytes` for LoRA support, via a short init script.
 
-The serverless part matters for auto-research specifically. The loop runs 20 experiments over 3 hours, then it's done. I don't want a GPU sitting idle after that. Databricks serverless GPU clusters start in about 3 minutes, stay warm while the loop runs, and auto-terminate when it finishes. I didn't SSH into anything, didn't pick an AMI, didn't set up a Docker container. I selected a node type and started writing training code.
+The serverless part matters for auto-research specifically. The loop runs 20 experiments over 3 hours, then it's done. I don't want a GPU sitting idle after that. Databricks serverless GPU clusters start in about 3 minutes, stay warm while the loop runs, and auto-terminate when it finishes. The whole setup was: pick a node type, write an init script, start a notebook.
 
-The other piece that simplifies auto-research on Databricks: the agent LLM. The loop needs an LLM to propose experiment changes. Databricks Foundation Model API serves GPT 5.4 as a serverless endpoint on the same platform. So the training GPU, the agent LLM, the data (Unity Catalog Volumes), and the experiment tracking (MLflow) all run in one place. For an unattended overnight loop, having fewer moving parts means fewer things that can break at 3 AM.
+The agent LLM (GPT 5.4) also runs on Databricks, served via Foundation Model API. So the training GPU, the agent, the data (Unity Catalog Volumes), and experiment tracking (MLflow) all live on one platform. When something breaks at 3 AM during an unattended run, you want fewer services to debug.
 
 ## The setup
 
@@ -95,17 +91,7 @@ The baseline LoRA configuration:
 | Quantization | 4-bit NF4 (QLoRA) |
 | Peak VRAM | 10.74 GB |
 
-The agent can modify any of these parameters. Each experiment changes exactly one value to isolate its effect.
-
-### What the agent can tweak
-
-The search space covers the parameters that matter most for LoRA fine-tuning:
-
-- **Learning rate** (1e-6 to 1e-3): Usually the single most impactful hyperparameter
-- **LoRA rank** (4 to 128): Controls adapter capacity. Higher rank means more trainable parameters but diminishing returns above 32 for a 3B model.
-- **Target modules**: Which attention layers get LoRA adapters. Starting with query/key/value/output projections, optionally adding MLP layers.
-- **Sequence length** (256 to 2048): Financial text is often verbose. Longer sequences capture more context but use more VRAM.
-- **Optimizer, scheduler, warmup, dropout, batch size**: Standard knobs.
+The agent can modify any of these. Each experiment changes exactly one value to isolate its effect. The full search space (learning rate, LoRA rank, target modules, sequence length, optimizer, scheduler, warmup, dropout, batch size) is visible in the experiment tables below.
 
 ## Building the financial corpus
 

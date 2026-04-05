@@ -43,7 +43,7 @@ Databricks GPU ML Runtimes (15.4.x-gpu-ml in our case) solved this. The runtime 
 
 The serverless part matters for auto-research specifically. The loop runs 20 experiments over 3 hours, then it's done. I don't want a GPU sitting idle after that. Databricks serverless GPU clusters start in about 3 minutes, stay warm while the loop runs, and auto-terminate when it finishes. I didn't SSH into anything, didn't pick an AMI, didn't set up a Docker container. I selected a node type and started writing training code.
 
-The other piece that simplifies auto-research on Databricks: the agent LLM. The loop needs an LLM to propose experiment changes. Databricks Foundation Model API serves Llama 3.3 70B as a serverless endpoint on the same platform. So the training GPU, the agent LLM, the data (Unity Catalog Volumes), and the experiment tracking (MLflow) all run in one place. For an unattended overnight loop, having fewer moving parts means fewer things that can break at 3 AM.
+The other piece that simplifies auto-research on Databricks: the agent LLM. The loop needs an LLM to propose experiment changes. Databricks Foundation Model API serves GPT 5.4 as a serverless endpoint on the same platform. So the training GPU, the agent LLM, the data (Unity Catalog Volumes), and the experiment tracking (MLflow) all run in one place. For an unattended overnight loop, having fewer moving parts means fewer things that can break at 3 AM.
 
 ## The setup
 
@@ -57,8 +57,8 @@ The other piece that simplifies auto-research on Databricks: the agent LLM. The 
 │  │  Serverless GPU Cluster (g5.xlarge / A10G)      │    │
 │  │                                                  │    │
 │  │  Notebook: Auto-Research Loop                    │    │
-│  │    1. Call agent ──► Foundation Model API         │    │
-│  │    2. Agent returns modified train.py  (GPT 5.4) │    │
+│  │    1. Call agent ─► Foundation Model API (GPT 5.4)│    │
+│  │    2. Agent returns modified train.py             │    │
 │  │    3. Run training (5 min)                       │    │
 │  │    4. Measure val_loss                           │    │
 │  │    5. Keep or revert                             │    │
@@ -74,7 +74,7 @@ The other piece that simplifies auto-research on Databricks: the agent LLM. The 
 └─────────────────────────────────────────────────────────┘
 ```
 
-Everything runs on a single Databricks notebook attached to one serverless GPU cluster. No Docker containers, no Kubernetes, no CUDA installation. The agent LLM (Llama 3.3 70B Instruct) runs via Databricks Foundation Model API, so there's no second GPU needed for the agent. The training data, adapters, and results all live in Unity Catalog Volumes. If you have a Databricks workspace with GPU access, you can reproduce this setup in under 10 minutes.
+Everything runs on a single Databricks notebook attached to one serverless GPU cluster. No Docker containers, no Kubernetes, no CUDA installation. The agent LLM (GPT 5.4 via Databricks Foundation Model API) runs as a serverless endpoint, so there's no second GPU needed for the agent. The training data, adapters, and results all live in Unity Catalog Volumes. If you have a Databricks workspace with GPU access, you can reproduce this setup in under 10 minutes.
 
 ### Model and training configuration
 

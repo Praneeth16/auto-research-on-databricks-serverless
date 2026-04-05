@@ -1,0 +1,39 @@
+{
+  "name": "auto-research-financial-lora",
+  "description": "Autonomous ML research: LoRA fine-tuning Qwen 3.5 4B on financial text",
+  "tasks": [
+    {
+      "task_key": "orchestrator",
+      "description": "Run the auto-research orchestration loop on serverless CPU",
+      "python_wheel_task": null,
+      "spark_python_task": {
+        "python_file": "/Volumes/main/auto_research/autoresearch/scripts/run_orchestrator.py",
+        "parameters": [
+          "--max-experiments", "100",
+          "--training-budget", "300"
+        ]
+      },
+      "environment_key": "orchestrator_env",
+      "timeout_seconds": 43200
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "orchestrator_env",
+      "spec": {
+        "client": "1",
+        "dependencies": [
+          "databricks-sdk>=0.36.0",
+          "openai>=1.50.0",
+          "mlflow>=2.16.0"
+        ]
+      }
+    }
+  ],
+  "tags": {
+    "project": "auto-research",
+    "domain": "financial",
+    "model": "qwen-3.5-4b-lora"
+  },
+  "max_concurrent_runs": 1
+}

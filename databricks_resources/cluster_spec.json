@@ -1,0 +1,17 @@
+{
+  "cluster_name": "auto-research-gpu",
+  "spark_version": "15.4.x-gpu-ml-scala2.12",
+  "node_type_id": "g5.xlarge",
+  "num_workers": 0,
+  "spark_conf": {
+    "spark.databricks.cluster.profile": "singleNode",
+    "spark.master": "local[*]"
+  },
+  "custom_tags": {
+    "ResourceClass": "SingleNode",
+    "project": "auto-research-financial"
+  },
+  "autotermination_minutes": 10,
+  "data_security_mode": "SINGLE_USER",
+  "runtime_engine": "STANDARD"
+}

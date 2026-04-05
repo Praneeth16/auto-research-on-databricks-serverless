@@ -1,0 +1,58 @@
+{
+  "best_composite_score": 0.708,
+  "best_val_loss": 1.3139584064483643,
+  "best_config": {
+    "lora_rank": 32,
+    "lora_alpha": 128,
+    "lora_dropout": 0.15,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ],
+    "learning_rate": 0.0002,
+    "lr_scheduler_type": "cosine",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.01,
+    "per_device_batch_size": 4,
+    "gradient_accumulation_steps": 4,
+    "max_length": 1024,
+    "gradient_checkpointing": true,
+    "bf16": true,
+    "optim": "adamw_torch"
+  },
+  "total_experiments": 10,
+  "early_stopped": true,
+  "latest_task_metrics": {
+    "financial_qa": {
+      "accuracy": 0.96,
+      "total": 25,
+      "correct": 24
+    },
+    "sentiment_classification": {
+      "accuracy": 0.36,
+      "total": 25,
+      "correct": 9
+    },
+    "entity_extraction": {
+      "accuracy": 1.0,
+      "total": 7,
+      "correct": 7
+    },
+    "summarization": {
+      "accuracy": 1.0,
+      "total": 5,
+      "correct": 5
+    },
+    "_composite_score": 0.668
+  },
+  "task_weights": {
+    "sentiment_classification": 0.5,
+    "financial_qa": 0.3,
+    "entity_extraction": 0.15,
+    "summarization": 0.05
+  },
+  "agent_model": "databricks-gpt-5-4",
+  "timestamp": "2026-04-04T21:56:49.060216+00:00"
+}

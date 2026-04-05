@@ -1,0 +1,21 @@
+timestamp	experiment_id	description	hypothesis	val_loss	train_loss	peak_vram_gb	kept
+2026-04-04T03:54:18.637003+00:00	autoresearch_000	Baseline run with default config	Establish baseline val_loss	1.3813247680664062	2.3805806356317856	10.74	True
+2026-04-04T04:04:13.731490+00:00	autoresearch_001	Schedule: learning_rate=0.0005	Testing learning_rate at 0.0005	1.3154770135879517	2.0533058129104913	10.74	True
+2026-04-04T04:13:30.863426+00:00	autoresearch_002	Schedule: learning_rate=0.0001	Testing learning_rate at 0.0001	1.607371211051941	2.6816302350923125	10.74	False
+2026-04-04T04:23:08.209499+00:00	autoresearch_003	Schedule: learning_rate=5e-05	Testing learning_rate at 5e-05	2.2911362648010254	2.947013770832735	10.74	False
+2026-04-04T04:32:24.648946+00:00	autoresearch_004	Schedule: lora_rank=32	Testing lora_rank at 32	1.3078831434249878	1.920974514063667	10.84	True
+2026-04-04T04:42:04.649256+00:00	autoresearch_005	Schedule: lora_rank=64	Testing lora_rank at 64	1.294883131980896	1.8011394411909813	11.05	True
+2026-04-04T04:51:23.409038+00:00	autoresearch_006	Schedule: max_length=512	Testing max_length at 512	1.295802354812622	1.8001064225739123	11.05	False
+2026-04-04T05:01:06.602642+00:00	autoresearch_007	Schedule: max_length=2048	Testing max_length at 2048	1.2964802980422974	1.8025674679700066	11.05	False
+2026-04-04T05:10:28.408833+00:00	autoresearch_008	Schedule: lora_dropout=0.1	Testing lora_dropout at 0.1	1.2958900928497314	1.802073686730628	11.05	False
+2026-04-04T05:20:15.063452+00:00	autoresearch_009	Schedule: per_device_batch_size=2	Testing per_device_batch_size at 2	1.3353614807128906	2.0082877617256316	11.05	False
+2026-04-04T05:29:28.830636+00:00	autoresearch_010	Schedule: gradient_accumulation_steps=8	Testing gradient_accumulation_steps at 8	1.2802238464355469	1.6653183324664247	13.2	True
+2026-04-04T05:41:09.773290+00:00	autoresearch_011	Schedule: lr_scheduler_type=linear	Testing lr_scheduler_type at linear	1.281449317932129	1.6622771609063243	13.2	False
+2026-04-04T05:52:50.687757+00:00	autoresearch_012	Schedule: optim=paged_adamw_8bit	Testing optim at paged_adamw_8bit	1.281619668006897	1.6605855249891095	13.2	False
+2026-04-04T06:04:34.342578+00:00	autoresearch_013	Schedule: warmup_ratio=0.1	Testing warmup_ratio at 0.1	1.30714750289917	1.893089303783342	13.2	False
+2026-04-04T06:16:15.785283+00:00	autoresearch_014	Schedule: weight_decay=0.05	Testing weight_decay at 0.05	1.280125379562378	1.6592553409875608	13.2	True
+2026-04-04T06:27:58.075202+00:00	autoresearch_015	Schedule: learning_rate=0.0003	Testing learning_rate at 0.0003	1.2835173606872559	1.7446688810984294	13.2	False
+2026-04-04T06:39:38.780132+00:00	autoresearch_016	Schedule: lora_rank=8	Testing lora_rank at 8	1.307328462600708	1.9751017000160964	13.2	False
+2026-04-04T06:51:18.565932+00:00	autoresearch_017	Schedule: learning_rate=0.001	Testing learning_rate at 0.001	1.2842063903808594	1.5924322044148165	13.2	False
+2026-04-04T07:03:01.494126+00:00	autoresearch_018	Schedule: per_device_batch_size=8	Testing per_device_batch_size at 8			0	False
+2026-04-04T07:05:56.621217+00:00	autoresearch_019	Schedule: lora_dropout=0.0	Testing lora_dropout at 0.0	1.2802201509475708	1.658201764611637	18.2	False
